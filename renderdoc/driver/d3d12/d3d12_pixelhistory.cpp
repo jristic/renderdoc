@@ -2168,6 +2168,23 @@ struct D3D12PixelHistoryPerFragmentCallback : D3D12PixelHistoryCallback
       //  slot in question. The others can be left intact.
       RDCASSERT(colorOutputIndex < pipeDesc.RTVFormats.NumRenderTargets);
       pipeDesc.RTVFormats.RTFormats[colorOutputIndex] = colorFormat;
+
+      // In order to have different write masks per render target, we need to switch to independent
+      //  blend if not already in use.
+      if(!pipeDesc.BlendState.IndependentBlendEnable)
+      {
+        pipeDesc.BlendState.IndependentBlendEnable = TRUE;
+        for(uint32_t i = 1; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+          pipeDesc.BlendState.RenderTarget[i] = pipeDesc.BlendState.RenderTarget[0];
+      }
+
+      // Mask out writes to targets which aren't the pixel history color target
+      for(uint32_t i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+      {
+        pipeDesc.BlendState.RenderTarget[i].BlendEnable = FALSE;
+        if(i != colorOutputIndex)
+          pipeDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = 0;
+      }
     }
 
     pipeDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
@@ -2197,10 +2214,15 @@ struct D3D12PixelHistoryPerFragmentCallback : D3D12PixelHistoryCallback
 
     m_PSOsToDestroy.push_back(pipes.postModPipe);
 
+    // Other targets were already disabled for the post mod pass, now force enable the
+    //  pixel history color target
+    if(colorOutputIndex != D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT)
+      pipeDesc.BlendState.RenderTarget[colorOutputIndex].RenderTargetWriteMask =
+          D3D12_COLOR_WRITE_ENABLE_ALL;
+
     for(uint32_t i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
     {
       pipeDesc.BlendState.RenderTarget[i].BlendEnable = FALSE;
-      pipeDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
     }
 
     {
@@ -2235,6 +2257,8 @@ struct D3D12PixelHistoryPerFragmentCallback : D3D12PixelHistoryCallback
       pipeDesc.RTVFormats.RTFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
       for(int i = 1; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
         pipeDesc.RTVFormats.RTFormats[i] = DXGI_FORMAT_UNKNOWN;
+      pipeDesc.BlendState.IndependentBlendEnable = FALSE;
+      pipeDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
       bool dxil = IsPSOUsingDXIL(pipeDesc);
 
