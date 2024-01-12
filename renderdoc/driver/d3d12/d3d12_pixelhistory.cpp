@@ -426,20 +426,24 @@ void D3D12DebugManager::PixelHistoryCopyPixel(ID3D12GraphicsCommandListX *cmd,
 struct D3D12PixelHistoryShaderCache
 {
   D3D12PixelHistoryShaderCache(WrappedID3D12Device *device, ID3DBlob *PersistentPrimIDPS,
-                               ID3DBlob *PersistentPrimIDPSDxil, ID3DBlob *FixedColorPS,
-                               ID3DBlob *FixedColorPSDxil)
-      : m_pDevice(device),
-        m_PrimIDPS(PersistentPrimIDPS),
-        m_PrimIDPSDxil(PersistentPrimIDPSDxil),
-        m_FixedColorPS(FixedColorPS),
-        m_FixedColorPSDxil(FixedColorPSDxil)
+                               ID3DBlob *PersistentPrimIDPSDxil, ID3DBlob *FixedColorPS[8],
+                               ID3DBlob *FixedColorPSDxil[8])
+      : m_pDevice(device), m_PrimIDPS(PersistentPrimIDPS), m_PrimIDPSDxil(PersistentPrimIDPSDxil)
   {
+    for(int i = 0; i < 8; ++i)
+    {
+      m_FixedColorPS[i] = FixedColorPS[i];
+      m_FixedColorPSDxil[i] = FixedColorPSDxil[i];
+    }
   }
 
   ~D3D12PixelHistoryShaderCache() {}
 
   // Returns a fragment shader that outputs a fixed color
-  ID3DBlob *GetFixedColorShader(bool dxil) { return dxil ? m_FixedColorPSDxil : m_FixedColorPS; }
+  ID3DBlob *GetFixedColorShader(bool dxil, int outputIndex)
+  {
+    return dxil ? m_FixedColorPSDxil[outputIndex] : m_FixedColorPS[outputIndex];
+  }
 
   // Returns a fragment shader that outputs primitive ID
   ID3DBlob *GetPrimitiveIdShader(bool dxil) { return dxil ? m_PrimIDPSDxil : m_PrimIDPS; }
@@ -451,8 +455,8 @@ private:
 
   ID3DBlob *m_PrimIDPS;
   ID3DBlob *m_PrimIDPSDxil;
-  ID3DBlob *m_FixedColorPS;
-  ID3DBlob *m_FixedColorPSDxil;
+  ID3DBlob *m_FixedColorPS[8];
+  ID3DBlob *m_FixedColorPSDxil[8];
 };
 
 // D3D12PixelHistoryCallback is a generic D3D12ActionCallback that can be used
@@ -1754,7 +1758,7 @@ private:
     {
       bool dxil = IsPSOUsingDXIL(pipeDesc);
 
-      ID3DBlob *FixedColorPS = m_ShaderCache->GetFixedColorShader(dxil);
+      ID3DBlob *FixedColorPS = m_ShaderCache->GetFixedColorShader(dxil, outputIndex);
       pipeDesc.PS.pShaderBytecode = FixedColorPS->GetBufferPointer();
       pipeDesc.PS.BytecodeLength = FixedColorPS->GetBufferSize();
     }
