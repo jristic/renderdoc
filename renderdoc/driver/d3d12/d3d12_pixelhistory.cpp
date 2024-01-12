@@ -729,7 +729,7 @@ struct D3D12OcclusionCallback : public D3D12PixelHistoryCallback
     pipeState.rts.clear();
     pipeState.dsv = *m_CallbackInfo.dsDescriptor;
     ID3D12PipelineState *pso =
-        GetPixelOcclusionPipeline(eid, pipeState, GetPixelHistoryRenderTargetIndex(pipeState));
+        GetPixelOcclusionPipeline(eid, pipeState);
 
     pipeState.pipe = GetResID(pso);
     // set the scissor
@@ -847,11 +847,8 @@ struct D3D12OcclusionCallback : public D3D12PixelHistoryCallback
   }
 
 private:
-  ID3D12PipelineState *GetPixelOcclusionPipeline(uint32_t eid, D3D12RenderState &state,
-                                                 uint32_t outputIndex)
+  ID3D12PipelineState *GetPixelOcclusionPipeline(uint32_t eid, D3D12RenderState &state)
   {
-    // TODO: outputIndex is unused. Either we need to select a fixed color shader that writes to the
-    // preferred RT, or use RenderTargetWriteMask in the blend desc to mask out unrelated RTs
     auto it = m_PipeCache.find(state.pipe);
     if(it != m_PipeCache.end())
       return it->second;
