@@ -728,8 +728,7 @@ struct D3D12OcclusionCallback : public D3D12PixelHistoryCallback
 
     pipeState.rts.clear();
     pipeState.dsv = *m_CallbackInfo.dsDescriptor;
-    ID3D12PipelineState *pso =
-        GetPixelOcclusionPipeline(eid, pipeState);
+    ID3D12PipelineState *pso = GetPixelOcclusionPipeline(eid, pipeState);
 
     pipeState.pipe = GetResID(pso);
     // set the scissor
