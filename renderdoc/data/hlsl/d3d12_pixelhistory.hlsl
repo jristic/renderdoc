@@ -148,7 +148,7 @@ float4 RENDERDOC_PrimitiveIDPS(uint prim : SV_PrimitiveID) : SV_Target0
   return asfloat(prim).xxxx;
 }
 
-struct MultipleOutput
+struct SelectedOutput
 {
 #if RT == 0
   float4 col : SV_Target0;
@@ -171,9 +171,9 @@ struct MultipleOutput
 #endif
 };
 
-MultipleOutput RENDERDOC_PixelHistoryFixedColPS()
+SelectedOutput RENDERDOC_PixelHistoryFixedColPS()
 {
-  MultipleOutput OUT = (MultipleOutput)0;
+  SelectedOutput OUT = (SelectedOutput)0;
 
   float4 color = float4(0.1f, 0.2f, 0.3f, 0.4f);
   OUT.col = color;

@@ -426,11 +426,12 @@ void D3D12DebugManager::PixelHistoryCopyPixel(ID3D12GraphicsCommandListX *cmd,
 struct D3D12PixelHistoryShaderCache
 {
   D3D12PixelHistoryShaderCache(WrappedID3D12Device *device, ID3DBlob *PersistentPrimIDPS,
-                               ID3DBlob *PersistentPrimIDPSDxil, ID3DBlob *FixedColorPS[8],
-                               ID3DBlob *FixedColorPSDxil[8])
+                               ID3DBlob *PersistentPrimIDPSDxil,
+                               ID3DBlob *FixedColorPS[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT],
+                               ID3DBlob *FixedColorPSDxil[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT])
       : m_pDevice(device), m_PrimIDPS(PersistentPrimIDPS), m_PrimIDPSDxil(PersistentPrimIDPSDxil)
   {
-    for(int i = 0; i < 8; ++i)
+    for(int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
     {
       m_FixedColorPS[i] = FixedColorPS[i];
       m_FixedColorPSDxil[i] = FixedColorPSDxil[i];
@@ -455,8 +456,8 @@ private:
 
   ID3DBlob *m_PrimIDPS;
   ID3DBlob *m_PrimIDPSDxil;
-  ID3DBlob *m_FixedColorPS[8];
-  ID3DBlob *m_FixedColorPSDxil[8];
+  ID3DBlob *m_FixedColorPS[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT];
+  ID3DBlob *m_FixedColorPSDxil[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT];
 };
 
 // D3D12PixelHistoryCallback is a generic D3D12ActionCallback that can be used

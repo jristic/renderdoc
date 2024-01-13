@@ -503,8 +503,8 @@ private:
     ID3DBlob *PrimitiveIDPS = NULL;
     ID3DBlob *PrimitiveIDPSDxil = NULL;
 
-    ID3DBlob *FixedColorPS[8] = {NULL};
-    ID3DBlob *FixedColorPSDxil[8] = {NULL};
+    ID3DBlob *FixedColorPS[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT] = {NULL};
+    ID3DBlob *FixedColorPSDxil[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT] = {NULL};
   } m_PixelHistory;
 
   struct HistogramMinMax
